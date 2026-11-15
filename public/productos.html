@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Productos · Gestor de Productos</title>
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Manrope:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="barra-interior">
+      <a class="marca" href="/productos"><img src="/img/logo.svg" alt="" width="34" height="34">Gestor de Productos</a>
+      <div class="usuario-chip" id="usuario-chip" hidden>
+        <span class="avatar" id="avatar" aria-hidden="true"></span>
+        <span class="nombre-usuario" id="nombre-usuario"></span>
+        <span class="rol" id="rol-usuario"></span>
+        <button class="boton boton-fantasma" type="button" id="btn-salir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <div class="encabezado">
+      <div>
+        <h1>Productos</h1>
+        <p>Consulta, registra y actualiza el inventario.</p>
+      </div>
+      <button class="boton boton-ambar" type="button" id="btn-nuevo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo producto
+      </button>
+    </div>
+
+    <section class="kpis" aria-label="Resumen del inventario">
+      <div class="kpi"><span>Productos</span><strong id="kpi-productos">—</strong></div>
+      <div class="kpi"><span>Unidades en existencia</span><strong id="kpi-unidades">—</strong></div>
+      <div class="kpi"><span>Valor del inventario</span><strong id="kpi-valor">—</strong></div>
+      <div class="kpi alerta-kpi"><span>Con 5 piezas o menos</span><strong id="kpi-bajo">—</strong></div>
+    </section>
+
+    <form class="herramientas" id="filtros" role="search">
+      <div class="buscador">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label class="sr-only" for="buscar">Buscar</label>
+        <input id="buscar" name="buscar" type="search" placeholder="Buscar por nombre, SKU o descripción" maxlength="50">
+      </div>
+      <div>
+        <label class="sr-only" for="categoria">Categoría</label>
+        <select id="categoria" name="categoria"><option value="">Todas las categorías</option></select>
+      </div>
+      <div>
+        <label class="sr-only" for="orden">Ordenar</label>
+        <select id="orden" name="orden">
+          <option value="recientes">Más recientes</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="precio-asc">Precio: menor a mayor</option>
+          <option value="precio-desc">Precio: mayor a menor</option>
+          <option value="stock">Menos existencias</option>
+        </select>
+      </div>
+      <label class="interruptor"><input type="checkbox" id="mios" name="mios"> Solo míos</label>
+    </form>
+
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th><th>Producto</th><th class="col-opcional">Categoría</th>
+            <th class="num">Precio</th><th class="num">Stock</th><th class="col-opcional">Registró</th><th class="num">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="filas"></tbody>
+      </table>
+      <div class="vacio" id="vacio" hidden><strong>No hay productos que coincidan</strong>Cambia los filtros o registra un producto nuevo.</div>
+      <div class="paginacion">
+        <span id="info-paginacion">—</span>
+        <div class="botones">
+          <button class="boton" type="button" id="anterior">Anterior</button>
+          <button class="boton" type="button" id="siguiente">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="dialogo-producto" aria-labelledby="titulo-dialogo">
+    <form id="form-producto" method="dialog" novalidate>
+      <div class="dialogo-cabecera"><h2 id="titulo-dialogo">Nuevo producto</h2></div>
+      <div class="dialogo-cuerpo">
+        <div id="mensaje-producto" class="alerta alerta-error ancho" role="alert" hidden></div>
+        <div class="campo ancho"><label for="p-nombre">Nombre</label><input id="p-nombre" name="nombre" maxlength="80" required></div>
+        <div class="campo"><label for="p-sku">SKU</label><input id="p-sku" name="sku" maxlength="20" placeholder="ELEC-001" required><span class="ayuda">Letras, números y guiones.</span></div>
+        <div class="campo"><label for="p-categoria">Categoría</label><select id="p-categoria" name="categoria" required></select></div>
+        <div class="campo"><label for="p-precio">Precio (MXN)</label><input id="p-precio" name="precio" type="number" min="0" step="0.01" inputmode="decimal" required></div>
+        <div class="campo"><label for="p-stock">Stock</label><input id="p-stock" name="stock" type="number" min="0" step="1" inputmode="numeric" required></div>
+        <div class="campo ancho"><label for="p-descripcion">Descripción</label><textarea id="p-descripcion" name="descripcion" maxlength="500" placeholder="Opcional"></textarea></div>
+      </div>
+      <div class="dialogo-pie">
+        <button class="boton" type="button" id="cancelar-producto">Cancelar</button>
+        <button class="boton boton-primario" type="submit" id="guardar-producto">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-eliminar" aria-labelledby="titulo-eliminar">
+    <div class="dialogo-cabecera"><h2 id="titulo-eliminar">¿Eliminar producto?</h2></div>
+    <div class="dialogo-cuerpo"><p class="ancho" id="texto-eliminar"></p></div>
+    <div class="dialogo-pie">
+      <button class="boton" type="button" id="cancelar-eliminar">Cancelar</button>
+      <button class="boton boton-peligro" type="button" id="confirmar-eliminar">Eliminar</button>
+    </div>
+  </dialog>
+
+  <div class="avisos" id="avisos" aria-live="polite"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/productos.js"></script>
+</body>
+</html>

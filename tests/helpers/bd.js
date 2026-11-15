@@ -13,7 +13,7 @@ async function conectarBD() {
     uri = servidorMemoria.getUri();
   }
   // Cada archivo de pruebas usa su propia base para no interferir con los demás
-  await mongoose.connect(uri, { dbName: `pruebas_${process.env.JEST_WORKER_ID}_${Date.now()}` });
+  await mongoose.connect(uri, { dbName: `pruebas_${process.env.JEST_WORKER_ID}_${Date.now()}`, serverSelectionTimeoutMS: 10000 });
   await Promise.all(Object.values(mongoose.models).map((modelo) => modelo.syncIndexes()));
 }
 

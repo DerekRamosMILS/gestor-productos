@@ -1,0 +1,93 @@
+# Pipeline de CI/CD: en cada push o pull request se instalan dependencias y se corren las pruebas
+# contra un MongoDB real. Si todo pasa en la rama main, se despliega en Render con un Deploy Hook
+# y se espera a que la versión nueva (el mismo commit) responda en producción.
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    name: Pruebas (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    services:
+      mongodb:
+        image: mongo:8
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      MONGODB_URI_TEST: mongodb://localhost:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Pruebas unitarias y de rutas con cobertura
+        run: npx jest --coverage --ci
+      - name: Guardar reporte de cobertura
+        if: matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/lcov-report
+          retention-days: 14
+
+  despliegue:
+    name: Despliegue en Render
+    needs: pruebas
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: produccion
+      url: ${{ vars.URL_PRODUCCION }}
+    steps:
+      - name: Comprobar que el Deploy Hook está configurado
+        id: hook
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::Falta el secreto RENDER_DEPLOY_HOOK_URL (Settings → Secrets and variables → Actions). No se desplegó."
+            echo "configurado=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configurado=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Solicitar el despliegue a Render
+        if: steps.hook.outputs.configurado == 'true'
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          respuesta=$(curl -fsS -X POST "$HOOK")
+          echo "Render aceptó el despliegue: $respuesta"
+      - name: Esperar a que el commit ${{ github.sha }} esté en línea
+        if: steps.hook.outputs.configurado == 'true'
+        env:
+          URL: ${{ vars.URL_PRODUCCION }}
+        run: |
+          for intento in $(seq 1 40); do
+            salud=$(curl -fsS --max-time 20 "$URL/api/salud" || true)
+            echo "Intento $intento: $salud"
+            if echo "$salud" | grep -q '"version":"${{ github.sha }}"'; then
+              echo "✔ Versión ${{ github.sha }} desplegada y conectada a MongoDB Atlas"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::La versión nueva no respondió en 10 minutos."
+          exit 1

@@ -16,12 +16,26 @@ async function asegurarAdmin() {
   return 'creado';
 }
 
+/** Carga productos de ejemplo una sola vez (colección vacía) cuando SEMBRAR_DATOS=true. */
+async function sembrarProductos() {
+  if (process.env.SEMBRAR_DATOS !== 'true') return 0;
+  const Producto = require('./src/models/Producto');
+  if (await Producto.estimatedDocumentCount() > 0) return 0;
+  const admin = await Usuario.findOne({ rol: 'admin' });
+  if (!admin) return 0;
+  const productos = require('./src/datos/productos-demo').map((p) => ({ ...p, creadoPor: admin._id }));
+  await Producto.insertMany(productos);
+  return productos.length;
+}
+
 async function iniciar() {
   const { host, nombre } = await db.conectar(config.mongoUri);
   console.log(`✔ Conectado a MongoDB: ${host} / ${nombre}`);
   await Promise.all([Usuario.syncIndexes(), require('./src/models/Producto').syncIndexes(), require('./src/models/Sesion').syncIndexes()]);
   const admin = await asegurarAdmin();
   if (admin) console.log(`✔ Usuario administrador: ${admin}`);
+  const sembrados = await sembrarProductos();
+  if (sembrados) console.log(`✔ ${sembrados} productos de ejemplo cargados`);
 
   const servidor = crearApp().listen(config.puerto, () => {
     console.log(`✔ Gestor de productos en http://localhost:${config.puerto}  [${config.entorno}]`);

@@ -35,6 +35,18 @@ usuarioSchema.methods.compararPassword = function compararPassword(password) {
   return bcrypt.compare(password, this.passwordHash);
 };
 
+// Cuando un usuario viaja dentro de otro documento (populate de creadoPor/actualizadoPor) se serializa
+// con "id", igual que los productos y que aPublico(). Antes salía como "_id" y el panel no reconocía
+// al dueño del producto (error encontrado al probar en producción; ver docs/pruebas-ia.md).
+usuarioSchema.set('toJSON', {
+  virtuals: true,
+  transform: (_doc, ret) => {
+    delete ret._id;
+    delete ret.passwordHash;
+    return ret;
+  },
+});
+
 /** Datos seguros para enviar al cliente. */
 usuarioSchema.methods.aPublico = function aPublico() {
   return { id: this.id, nombre: this.nombre, correo: this.correo, rol: this.rol, creadoEn: this.creadoEn };

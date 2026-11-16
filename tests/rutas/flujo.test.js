@@ -25,6 +25,9 @@ test('flujo completo de un usuario', async () => {
 
   const lista = await agente.get('/api/productos?buscar=teclado').expect(200);
   expect(lista.body.paginacion.total).toBe(1);
+  // Regresión: el panel identifica al dueño comparando creadoPor.id con el id del usuario de la sesión
+  expect(lista.body.datos[0].creadoPor).toEqual({ id: login.body.usuario.id, nombre: 'Ana López' });
+  expect(creado.body.producto.creadoPor).not.toHaveProperty('_id');
 
   const editado = await agente.put(`/api/productos/${id}`).send({ stock: 3 }).expect(200);
   expect(editado.body.producto.stock).toBe(3);

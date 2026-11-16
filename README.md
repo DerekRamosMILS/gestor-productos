@@ -1,5 +1,7 @@
 # Gestor de Productos · Node.js + Express + MongoDB
 
+[![CI/CD](https://github.com/DerekRamosMILS/gestor-productos/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/DerekRamosMILS/gestor-productos/actions/workflows/ci-cd.yml)
+
 Aplicación web para administrar un inventario de productos. Los usuarios se registran, inician sesión con **JWT** y, ya autenticados, pueden **crear, consultar, modificar y eliminar** productos guardados en **MongoDB Atlas** mediante **Mongoose**. Incluye pruebas automatizadas con **Jest** y un pipeline de **GitHub Actions** que prueba y despliega en **Render**.
 
 Actividad 4 · Desarrollo Full Stack · Universidad Tecmilenio

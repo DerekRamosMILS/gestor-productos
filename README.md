@@ -5,7 +5,7 @@ Aplicación web para administrar un inventario de productos. Los usuarios se reg
 Actividad 4 · Desarrollo Full Stack · Universidad Tecmilenio
 Derek Joan Ramos del Ángel · AL07195561
 
-- **En línea:** https://gestor-productos.onrender.com
+- **En línea:** https://gestor-productos-2bxn.onrender.com
 - **Local:** http://localhost:3000
 
 ## Tecnologías
@@ -103,7 +103,7 @@ El token se envía en la cookie `token` (navegador) o en el encabezado `Authoriz
 3. **Variables en Render:** `MONGODB_URI`, `JWT_SECRET`, `NODE_ENV=production`, `ADMIN_*`.
 4. **GitHub → Settings → Secrets and variables → Actions:**
    - Secreto `RENDER_DEPLOY_HOOK_URL` (Render → Settings → Deploy Hook).
-   - Variable `URL_PRODUCCION` = `https://gestor-productos.onrender.com`.
+   - Variable `URL_PRODUCCION` = `https://gestor-productos-2bxn.onrender.com`.
 
 En cada push a `main`, `.github/workflows/ci-cd.yml` corre las pruebas en Node 22 y 24 contra un MongoDB 8 real; si pasan, llama al Deploy Hook de Render y espera hasta que `/api/salud` reporte el mismo commit. Si una prueba falla, no se despliega.
 

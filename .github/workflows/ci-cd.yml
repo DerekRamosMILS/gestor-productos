@@ -17,7 +17,7 @@ concurrency:
 jobs:
   pruebas:
     name: Pruebas (Node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         node: [22, 24]
@@ -31,8 +31,8 @@ jobs:
     env:
       MONGODB_URI_TEST: mongodb://127.0.0.1:27017
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -42,7 +42,7 @@ jobs:
         run: npx jest --coverage --ci
       - name: Guardar reporte de cobertura
         if: matrix.node == 22
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cobertura
           path: coverage/lcov-report
@@ -52,7 +52,7 @@ jobs:
     name: Despliegue en Render
     needs: pruebas
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: produccion
       url: ${{ vars.URL_PRODUCCION }}

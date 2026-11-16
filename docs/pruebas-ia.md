@@ -85,3 +85,14 @@ MongooseServerSelectionError: Missing required sub-document 'driver' in the clie
 | Suite final en GitHub Actions (Node 22 y 24, MongoDB 8) | **81 / 81** | **93 %** |
 
 Controladores: `auth.controller.js` 100 % y `productos.controller.js` 100 % de líneas.
+
+## 6. Error encontrado al probar en producción
+
+Con la app ya desplegada en Render, al iniciar sesión con una cuenta de usuario y crear un producto, el panel marcaba como "no permitido" el botón de editar **del propio producto**. La API sí lo permitía; el problema estaba entre ambas capas:
+
+- El panel decide quién es el dueño comparando `producto.creadoPor.id` con el `id` del usuario de la sesión.
+- `populate('creadoPor', 'nombre')` devolvía el usuario como `{ _id, nombre }`, sin `id`, porque el modelo `Usuario` no tenía la transformación `toJSON` que sí tenía `Producto`.
+
+**Corrección:** `Usuario` ahora se serializa igual que `Producto` (`id` virtual, sin `_id` ni `passwordHash`). Se agregó una prueba de regresión en `tests/rutas/flujo.test.js` que verifica que `creadoPor` llega como `{ id, nombre }`.
+
+Las pruebas unitarias no lo detectaron porque simulan los modelos; la prueba de rutas revisaba solo `creadoPor.nombre`. Es un buen ejemplo de por qué conviene combinar pruebas automáticas con pruebas manuales sobre la aplicación real.

@@ -42,7 +42,7 @@ jobs:
         run: npx jest --coverage --ci
       - name: Guardar reporte de cobertura
         if: matrix.node == 22
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: cobertura
           path: coverage/lcov-report
